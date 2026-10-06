@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChordForge: record guitar and vocals, get a mixed song</title>
+  <meta name="description" content="Record your guitar and vocals section by section, then let ChordForge assemble and mix them into a finished song.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="ChordForge home"><span class="brand-mark" aria-hidden="true"></span>CHORDFORGE</a>
+    <div id="userbar" class="userbar" hidden>
+      <span id="user-email" class="muted"></span>
+      <button id="btn-logout" class="btn btn-ghost btn-sm" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ================= Landing / auth ================= -->
+    <section id="view-landing" class="landing">
+      <div class="hero">
+        <p class="eyebrow">For guitarists and singers</p>
+        <h1>Record your song.<br><span class="grad">Let it come together.</span></h1>
+        <p class="lead">Record your guitar for each part of a song &mdash; intro, verse, chorus &mdash;
+          then layer your vocals over it. When you're ready, ChordForge assembles your sections and
+          mixes your vocals and guitar together automatically.</p>
+        <ol class="how">
+          <li><b>Record</b><span>Play guitar and sing over it, section by section.</span></li>
+          <li><b>Arrange</b><span>Drop your recordings into an Intro/Verse/Chorus structure.</span></li>
+          <li><b>Build</b><span>ChordForge levels, ducks and polishes the mix for you.</span></li>
+        </ol>
+        <p class="fine">This is a recording and editing tool &mdash; nothing is generated or synthesised.
+          Every sound in your song is something you actually played or sang.</p>
+      </div>
+      <div class="card auth">
+        <div class="tabs" role="tablist" aria-label="Account">
+          <button id="tab-register" class="tab active" role="tab" aria-selected="true" type="button">Create account</button>
+          <button id="tab-login" class="tab" role="tab" aria-selected="false" type="button">Sign in</button>
+        </div>
+        <form id="auth-form" novalidate>
+          <label for="auth-email">Email</label>
+          <input id="auth-email" type="email" autocomplete="email" required maxlength="254">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          <p id="auth-hint" class="hint">At least 10 characters.</p>
+          <p id="auth-error" class="error" role="alert" hidden></p>
+          <button id="auth-submit" class="btn btn-primary btn-block" type="submit">Create account</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= Studio ================= -->
+    <section id="view-studio" class="studio" hidden>
+      <aside class="sidebar" aria-label="Projects">
+        <div class="side-head">
+          <h2>Songs</h2>
+          <button id="btn-new" class="btn btn-sm" type="button">+ New</button>
+        </div>
+        <ul id="project-list" class="project-list"></ul>
+        <p id="project-empty" class="muted small" hidden>No songs yet.</p>
+      </aside>
+
+      <div class="workspace">
+        <div id="no-project" class="card center" hidden>
+          <h2>Start a new song</h2>
+          <p class="muted">Create a project, then record your guitar and vocals.</p>
+          <button id="btn-start" class="btn btn-primary" type="button">New song</button>
+        </div>
+
+        <div id="project-view" hidden>
+          <div class="project-head">
+            <label class="sr-only" for="project-name">Song name</label>
+            <input id="project-name" class="name-input" type="text" maxlength="80">
+            <button id="btn-save" class="btn btn-sm" type="button">Save name</button>
+          </div>
+
+          <!-- 1. parts: guitar + vocal recordings -->
+          <section id="card-clips" class="card" aria-labelledby="h-clips">
+            <h2 id="h-clips"><span class="step">1</span> Record your parts</h2>
+            <p class="hint">Record or upload guitar and vocal takes here. Each one becomes a part you
+              can trim, adjust the volume of, and place into a section below.</p>
+
+            <div class="row wrap">
+              <select id="clip-track-type" aria-label="Part type"></select>
+              <input id="clip-label" type="text" maxlength="60" placeholder="Label (optional)">
+              <button id="btn-record-clip" class="btn btn-primary" type="button">&#9679; Record part</button>
+              <button id="btn-stop-clip" class="btn btn-danger" type="button" hidden>&#9632; Stop</button>
+              <label class="btn" for="clip-file-input" id="btn-upload-clip">Upload part</label>
+              <input id="clip-file-input" class="sr-only" type="file" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.webm">
+            </div>
+            <div class="row wrap">
+              <label class="ref-label" for="clip-ref-select">Play while recording</label>
+              <select id="clip-ref-select" aria-label="Play this part back while recording">
+                <option value="">No reference (record alone)</option>
+              </select>
+            </div>
+            <p class="hint">Pick an existing part above and it'll play back as you record, so you
+              can perform in time with something you already laid down &mdash; e.g. hear your
+              guitar while you sing. <strong>Use headphones</strong>: without them, the playback
+              will bleed into your microphone.</p>
+            <audio id="ref-audio" preload="auto" class="sr-only"></audio>
+            <div id="rec-live" class="rec-live" hidden>
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span id="rec-time" class="mono">0:00</span>
+              <div class="meter" aria-hidden="true"><div id="meter-bar" class="meter-bar"></div></div>
+            </div>
+            <p id="clip-status" class="status" role="status" aria-live="polite"></p>
+
+            <div id="clip-list" class="clip-list"></div>
+            <p id="clip-empty" class="muted small" hidden>No parts recorded yet.</p>
+          </section>
+
+          <!-- 2. song structure -->
+          <section id="card-structure" class="card" aria-labelledby="h-structure">
+            <h2 id="h-structure"><span class="step">2</span> Arrange your sections</h2>
+            <p class="hint">Add the sections your song needs (Intro, Verse, Chorus, ...) and tick which
+              parts play in each one. A section's length is simply the length of the longest part
+              placed in it &mdash; there's nothing to configure. Tick "loop" for a short part (like a
+              guitar riff) that should repeat to fill the section.</p>
+            <div id="section-list" class="section-list"></div>
+            <button id="btn-add-section" class="btn btn-sm" type="button">+ Add section</button>
+            <p id="structure-hint" class="hint"></p>
+          </section>
+
+          <!-- 3. mix & export -->
+          <section id="card-mix" class="card" aria-labelledby="h-mix">
+            <h2 id="h-mix"><span class="step">3</span> Build your song</h2>
+            <p class="hint">This assembles your sections in order and runs your recordings through a
+              fixed mixing chain: levels balanced, the guitar ducked slightly under your vocals so they
+              sit on top, light compression and EQ, smooth crossfades between sections, and a final
+              limiter. Nothing is generated &mdash; only your own recordings, mixed.</p>
+            <button id="btn-mixdown" class="btn btn-primary btn-lg" type="button">BUILD MY SONG</button>
+            <p id="mix-error" class="error" role="alert" hidden></p>
+            <div id="mix-progress" class="progress" hidden><span class="spinner" aria-hidden="true"></span>
+              <span id="mix-progress-text" role="status" aria-live="polite"></span></div>
+            <p id="mix-failed" class="error" role="alert" hidden></p>
+            <div id="mix-done" hidden>
+              <audio id="player-mixdown" controls preload="metadata"></audio>
+              <div class="row">
+                <a id="btn-download" class="btn btn-primary" href="#" download>Download WAV</a>
+                <span id="mix-meta" class="muted small"></span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot"><span>ChordForge</span><span class="muted">A recording and editing tool &mdash; nothing here is AI-generated.</span></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="noscript">ChordForge needs JavaScript.</p></noscript>
+  <script src="/app.js" defer></script>
+</body>
+</html>
